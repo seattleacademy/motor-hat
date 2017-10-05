@@ -4,3 +4,5 @@ articles:
  	- Overview: README.md
 branches:
  	- docs
+dir:
+  - lib
