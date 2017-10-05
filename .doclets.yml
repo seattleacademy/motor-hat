@@ -2,7 +2,7 @@ dir: lib
 packageJson: package.json
 articles:
  	- Overview: README.md
-branches:
- 	- docs
 dir:
   - lib
+branches:
+ 	- docs
