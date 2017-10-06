@@ -1,5 +1,4 @@
-files:
-  - lib/dc.js
+dir: lib
 packageJson: package.json
 articles:
  	- Overview: README.md
