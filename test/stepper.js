@@ -259,33 +259,6 @@ describe('lib/stepper.js', () => {
     });
   });
 
-  describe('Asynch stepping clash detection', () => {
-    beforeEach(() => {
-      pwm.resetAll();
-    });
-
-    const steps = 2;
-    const p = { W1: [8, 10, 9], W2: [13, 11, 12] };
-    const po = {};
-    po.W1 = { PWM: p.W1[0], IN1: p.W1[1], IN2: p.W1[2] };
-    po.W2 = { PWM: p.W2[0], IN1: p.W2[1], IN2: p.W2[2] };
-
-    pwm.setPin.resetBehavior();
-    pwm.setPin = sinon.stub().callsFake((add, opt, cb) => {
-      pwm.setPin.resetBehavior();
-      pwm.setPin = sinon.stub().yieldsAsync(null);
-      setTimeout(() => cb(null, null), 1000);
-    });
-
-    it('should count step retries', (done) => {
-      const inst = stepper({ pwm, pins: p, pps: 600 }).init();
-      inst.step('fwd', steps, (err, res) => {
-        should.notEqual(res[4], 0);
-        done();
-      });
-    });
-  });
-
   describe('SetFreq', () => {
     beforeEach(() => {
       pwm.resetAll();
@@ -416,7 +389,7 @@ describe('lib/stepper.js', () => {
     po.W1 = { PWM: p.W1[0], IN1: p.W1[1], IN2: p.W1[2] };
     po.W2 = { PWM: p.W2[0], IN1: p.W2[1], IN2: p.W2[2] };
 
-    it('should error if previous step not finished', (done) => {
+    it('should count step retries', (done) => {
       pwm.setPin.resetBehavior();
       pwm.setPin = sinon.stub().callsFake((add, opt, cb) => {
         pwm.setPin.resetBehavior();
@@ -424,8 +397,8 @@ describe('lib/stepper.js', () => {
         setTimeout(() => cb(null, null), 1000);
       });
       const inst = stepper({ pwm, pins: p, pps: 600 }).init();
-      inst.step('fwd', steps, (err) => {
-        should.notEqual(err, null);
+      inst.step('fwd', steps, (err, res) => {
+        should.notEqual(res[4], 0);
         done();
       });
     });
