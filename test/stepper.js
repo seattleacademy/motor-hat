@@ -277,10 +277,10 @@ describe('lib/stepper.js', () => {
       setTimeout(() => cb(null, null), 1000);
     });
 
-    it('should error if previous step not finished', (done) => {
+    it('should count step retries', (done) => {
       const inst = stepper({ pwm, pins: p, pps: 600 }).init();
-      inst.step('fwd', steps, (err) => {
-        should.notEqual(err, null);
+      inst.step('fwd', steps, (err, res) => {
+        should.notEqual(res[4], 0);
         done();
       });
     });
