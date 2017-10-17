@@ -27,6 +27,12 @@ describe('lib/pwm.js', () => {
       }).should.throw();
     });
 
+    it('should check busnum is a number to initialize', () => {
+      (function () {
+        pwm({ i2c, busnum: 'i2c' }).init();
+      }).should.throw();
+    });
+
     it('should initialize', () => {
       (function () {
         try {
@@ -167,6 +173,13 @@ describe('lib/pwm.js', () => {
     const prescale = Math.ceil((25000000 / 4096 / freq) - 1);
 
     const instance = pwm({ i2c, address: addr }).init();
+
+    it('should fail on wrong params', () => {
+      (function () {
+        instance.setPWMFreqSync('freq');
+      }).should.throw();
+    });
+
     i2c.resetAll();
     let i = 0;
     it('should set sleep mode', () => {
@@ -193,6 +206,13 @@ describe('lib/pwm.js', () => {
     const prescale = Math.ceil((25000000 / 4096 / freq) - 1);
 
     const instance = pwm({ i2c, address: addr }).init();
+
+    it('should fail on wrong params', () => {
+      (function () {
+        instance.setPWMFreq('freq');
+      }).should.throw();
+    });
+
     i2c.resetAll();
     let i = 0;
     it('should set sleep mode', (done) => {
@@ -262,6 +282,15 @@ describe('lib/pwm.js', () => {
       }).should.throw();
     });
 
+    it('should fail on wrong params', () => {
+      (function () {
+        instance.setPWM(0, 4097, 0, () => {});
+      }).should.throw();
+      (function () {
+        instance.setPWM(0, 0, -1, () => {});
+      }).should.throw();
+    });
+
     it('should set all 4 registers for the channel', (done) => {
       i2c.resetAll();
       instance.setPWM(channel, on, off, (err) => {
@@ -292,6 +321,15 @@ describe('lib/pwm.js', () => {
       }).should.throw();
     });
 
+    it('should fail on wrong params', () => {
+      (function () {
+        instance.setPWMSync(0, 4097, 0);
+      }).should.throw();
+      (function () {
+        instance.setPWMSync(0, 0, -1);
+      }).should.throw();
+    });
+
     it('should set all 4 registers for the channel', () => {
       i2c.resetAll();
       instance.setPWMSync(channel, on, off);
@@ -308,6 +346,12 @@ describe('lib/pwm.js', () => {
     const off = 0xFE;
 
     const instance = pwm({ i2c, address: addr }).init();
+
+    it('should fail on wrong params', () => {
+      (function () {
+        instance.setAllPWM(4097, 0, () => {});
+      }).should.throw();
+    });
 
     it('should set all 4 registers for the channel', (done) => {
       i2c.resetAll();
@@ -328,6 +372,12 @@ describe('lib/pwm.js', () => {
     const off = 0xFE;
 
     const instance = pwm({ i2c, address: addr }).init();
+
+    it('should fail on wrong params', () => {
+      (function () {
+        instance.setAllPWMSync(4097, 0);
+      }).should.throw();
+    });
 
     it('should set all 4 registers for the channel', () => {
       i2c.resetAll();
