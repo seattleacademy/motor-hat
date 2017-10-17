@@ -259,6 +259,69 @@ describe('lib/stepper.js', () => {
     });
   });
 
+  describe('Asynch stepping clash detection', () => {
+    beforeEach(() => {
+      pwm.resetAll();
+    });
+
+    const steps = 2;
+    const p = { W1: [8, 10, 9], W2: [13, 11, 12] };
+    const po = {};
+    po.W1 = { PWM: p.W1[0], IN1: p.W1[1], IN2: p.W1[2] };
+    po.W2 = { PWM: p.W2[0], IN1: p.W2[1], IN2: p.W2[2] };
+
+    pwm.setPin.resetBehavior();
+    pwm.setPin = sinon.stub().callsFake((add, opt, cb) => {
+      pwm.setPin.resetBehavior();
+      pwm.setPin = sinon.stub().yieldsAsync(null);
+      setTimeout(() => cb(null, null), 1000);
+    });
+
+    it('should count step retries', (done) => {
+      const inst = stepper({ pwm, pins: p, pps: 600 }).init();
+      inst.step('fwd', steps, (err, res) => {
+        should.notEqual(res[4], 0);
+        done();
+      });
+    });
+  });
+
+  describe('SetFreq', () => {
+    beforeEach(() => {
+      pwm.resetAll();
+    });
+
+    it('should fail if pwm fails', (done) => {
+      const p = { W1: [8, 10, 9], W2: [13, 11, 12] };
+      const po = {};
+      po.W1 = { PWM: p.W1[0], IN1: p.W1[1], IN2: p.W1[2] };
+      po.W2 = { PWM: p.W2[0], IN1: p.W2[1], IN2: p.W2[2] };
+
+
+      const asyncInst = stepper({ pwm, pins: p, pps: 600 }).init();
+      pwm.setPWMFreqSync.resetBehavior();
+      pwm.setPWMFreqSync = sinon.stub().callsFake(() => {
+        pwm.setPWMFreqSync.resetBehavior();
+        pwm.setPWMFreqSync = sinon.stub();
+        throw new Error('error!');
+      });
+      (() => asyncInst.setFrequencySync(100)).should.throw();
+
+      pwm.setPWMFreq.resetBehavior();
+      pwm.setPWMFreq = sinon.stub().callsFake((freq, cb) => {
+        pwm.setPWMFreq.resetBehavior();
+        pwm.setPWMFreq = sinon.stub().yieldsAsync(null);
+        cb('error!');
+      });
+
+      const inst = stepper({ pwm, pins: p, pps: 600 }).init();
+      inst.setFrequency(100, (err) => {
+        should.notEqual(err, null);
+        done();
+      });
+    });
+  });
+
   describe('stepper release', () => {
     beforeEach(() => {
       pwm.resetAll();
@@ -285,6 +348,21 @@ describe('lib/stepper.js', () => {
 
       checkExpected(seqrelease, pwm, po, steps);
       pwm.resetAll();
+    });
+
+    it('should fail without callback (async)', () => {
+      (function () {
+        const inst = stepper({ pwm, pins: p, pps: 600 });
+        inst.release();
+      }).should.throw();
+    });
+
+    it('should release the motor asynchronously', (done) => {
+      const inst = stepper({ pwm, pins: p, pps: 600 });
+      inst.release(() => {
+        checkExpected(seqrelease, pwm, po, steps, false);
+        done();
+      });
     });
   });
 
@@ -364,6 +442,18 @@ describe('lib/stepper.js', () => {
     po.W1 = { PWM: p.W1[0], IN1: p.W1[1], IN2: p.W1[2] };
     po.W2 = { PWM: p.W2[0], IN1: p.W2[1], IN2: p.W2[2] };
 
+    it('should fail with bad dir', () => {
+      (function () {
+        const inst = stepper({ pwm, pins: p, pps: 600 }).init();
+        inst.stepSync('adelante', steps);
+      }).should.throw();
+
+      (function () {
+        const inst = stepper({ pwm, pins: p, pps: 600 }).init();
+        inst.step('adelante', steps);
+      }).should.throw();
+    });
+
     it('should do 4 synch double steps fwd', () => {
       const inst = stepper({ pwm, pins: p, pps: 600 }).init();
       inst.stepSync('fwd', steps);
@@ -405,6 +495,22 @@ describe('lib/stepper.js', () => {
     const channel = 0;
     const steps = 4;
     const p = ports[channel];
+
+    it('should fail with bad dir', () => {
+      (function () {
+        const inst = stepper({
+          pwm, pins: p, style: 'single', pps: 600,
+        }).init();
+        inst.stepSync('adelante', steps);
+      }).should.throw();
+
+      (function () {
+        const inst = stepper({
+          pwm, pins: p, style: 'single', pps: 600,
+        }).init();
+        inst.step('adelante', steps);
+      }).should.throw();
+    });
 
     it('should do 4 single synch steps fwd', () => {
       const inst = stepper({
@@ -456,6 +562,22 @@ describe('lib/stepper.js', () => {
     const steps = 4 * 8;
     const p = ports[channel];
 
+    it('should fail with bad dir', () => {
+      (function () {
+        const inst = stepper({
+          pwm, pins: p, style: 'microstep', pps: 600,
+        }).init();
+        inst.stepSync('adelante', steps);
+      }).should.throw();
+
+      (function () {
+        const inst = stepper({
+          pwm, pins: p, style: 'microstep', pps: 600,
+        }).init();
+        inst.step('adelante', steps);
+      }).should.throw();
+    });
+
     it('should do 4 * 8 synch microsteps fwd', () => {
       const inst = stepper({
         pwm, pins: p, style: 'microstep', pps: 600,
@@ -506,6 +628,22 @@ describe('lib/stepper.js', () => {
     const steps = 4 * 16;
     const p = ports[channel];
 
+    it('should fail with bad dir', () => {
+      (function () {
+        const inst = stepper({
+          pwm, pins: p, style: 'microstep', microsteps: 16,
+        }).init();
+        inst.stepSync('adelante', steps);
+      }).should.throw();
+
+      (function () {
+        const inst = stepper({
+          pwm, pins: p, style: 'microstep', microsteps: 16,
+        }).init();
+        inst.step('adelante', steps);
+      }).should.throw();
+    });
+
     it('should do 4 * 16 synch microsteps', () => {
       const inst = stepper({
         pwm, pins: p, style: 'microstep', microsteps: 16,
@@ -537,6 +675,22 @@ describe('lib/stepper.js', () => {
     const channel = 0;
     const steps = 8;
     const p = ports[channel];
+
+    it('should fail with bad dir', () => {
+      (function () {
+        const inst = stepper({
+          pwm, pins: p, style: 'interleaved', pps: 600,
+        }).init();
+        inst.stepSync('adelante', steps);
+      }).should.throw();
+
+      (function () {
+        const inst = stepper({
+          pwm, pins: p, style: 'interleaved', pps: 600,
+        }).init();
+        inst.step('adelante', steps);
+      }).should.throw();
+    });
 
     it('should do 8 synch interleaved steps fwd', () => {
       const inst = stepper({
