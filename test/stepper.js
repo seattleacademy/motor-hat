@@ -259,33 +259,6 @@ describe('lib/stepper.js', () => {
     });
   });
 
-  describe('Asynch stepping clash detection', () => {
-    beforeEach(() => {
-      pwm.resetAll();
-    });
-
-    const steps = 2;
-    const p = { W1: [8, 10, 9], W2: [13, 11, 12] };
-    const po = {};
-    po.W1 = { PWM: p.W1[0], IN1: p.W1[1], IN2: p.W1[2] };
-    po.W2 = { PWM: p.W2[0], IN1: p.W2[1], IN2: p.W2[2] };
-
-    pwm.setPin.resetBehavior();
-    pwm.setPin = sinon.stub().callsFake((add, opt, cb) => {
-      pwm.setPin.resetBehavior();
-      pwm.setPin = sinon.stub().yieldsAsync(null);
-      setTimeout(() => cb(null, null), 1000);
-    });
-
-    it('should count step retries', (done) => {
-      const inst = stepper({ pwm, pins: p, pps: 600 }).init();
-      inst.step('fwd', steps, (err, res) => {
-        should.notEqual(res[4], 0);
-        done();
-      });
-    });
-  });
-
   describe('SetFreq', () => {
     beforeEach(() => {
       pwm.resetAll();
@@ -333,11 +306,21 @@ describe('lib/stepper.js', () => {
     po.W1 = { PWM: p.W1[0], IN1: p.W1[1], IN2: p.W1[2] };
     po.W2 = { PWM: p.W2[0], IN1: p.W2[1], IN2: p.W2[2] };
 
+    it('should release the motor asynchronously', (done) => {
+      const inst = stepper({ pwm, pins: p, pps: 600 }).init();
+      inst.release((err) => {
+        should.equal(err, null);
+        checkExpected(seqrelease, pwm, po, steps, false);
+        done();
+      });
+    });
+
     it('should release the motor synchronously', () => {
-      const inst = stepper({ pwm, pins: p, pps: 600 });
+      const inst = stepper({ pwm, pins: p, pps: 600 }).init();
       inst.releaseSync();
 
       checkExpected(seqrelease, pwm, po, steps);
+      pwm.resetAll();
     });
 
     it('should fail without callback (async)', () => {
@@ -368,7 +351,7 @@ describe('lib/stepper.js', () => {
     po.W2 = { PWM: p.W2[0], IN1: p.W2[1], IN2: p.W2[2] };
 
     it('should do 4 double steps fwd with falling pwm values', () => {
-      const inst = stepper({ pwm, pins: p, pps: 600 });
+      const inst = stepper({ pwm, pins: p, pps: 600 }).init();
       inst.stepSync('fwd', 1);
 
       inst.setCurrent(0.75);
@@ -386,12 +369,38 @@ describe('lib/stepper.js', () => {
 
     it('should respect parameter ranges', () => {
       (function () {
-        stepper({ pwm: { setPWMFreq() {} }, pins: ports[0] }).setCurrent(-1);
+        stepper({ pwm: { setPWMFreq() {} }, pins: ports[0] }).init().setCurrent(-1);
       }).should.throw();
 
       (function () {
-        stepper({ pwm: { setPWMFreq() {} }, pins: ports[0] }).setCurrent(1.5);
+        stepper({ pwm: { setPWMFreq() {} }, pins: ports[0] }).init().setCurrent(1.5);
       }).should.throw();
+    });
+  });
+
+  describe('Asynch stepping clash detection', () => {
+    beforeEach(() => {
+      pwm.resetAll();
+    });
+
+    const steps = 2;
+    const p = { W1: [8, 10, 9], W2: [13, 11, 12] };
+    const po = {};
+    po.W1 = { PWM: p.W1[0], IN1: p.W1[1], IN2: p.W1[2] };
+    po.W2 = { PWM: p.W2[0], IN1: p.W2[1], IN2: p.W2[2] };
+
+    it('should count step retries', (done) => {
+      pwm.setPin.resetBehavior();
+      pwm.setPin = sinon.stub().callsFake((add, opt, cb) => {
+        pwm.setPin.resetBehavior();
+        pwm.setPin = sinon.stub().yieldsAsync(null);
+        setTimeout(() => cb(null, null), 1000);
+      });
+      const inst = stepper({ pwm, pins: p, pps: 600 }).init();
+      inst.step('fwd', steps, (err, res) => {
+        should.notEqual(res[4], 0);
+        done();
+      });
     });
   });
 
