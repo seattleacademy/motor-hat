@@ -285,7 +285,7 @@ describe('lib/stepper.js', () => {
       });
     });
   });
-  
+
   describe('stepper release', () => {
     beforeEach(() => {
       pwm.resetAll();
@@ -302,6 +302,14 @@ describe('lib/stepper.js', () => {
       inst.releaseSync();
 
       checkExpected(seqrelease, pwm, po, steps);
+    });
+
+    it('should release the motor asynchronously', (done) => {
+      const inst = stepper({ pwm, pins: p, pps: 600 });
+      inst.release(() => {
+        checkExpected(seqrelease, pwm, po, steps, false);
+        done();
+      });
     });
   });
 
