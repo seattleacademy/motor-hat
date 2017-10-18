@@ -6,7 +6,6 @@
   "source"    : {
     "include" : [
       "lib/",
-      "examples/",
       "package.json",
       "./README.md"
     ],
