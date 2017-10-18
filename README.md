@@ -1,4 +1,4 @@
-# motor-hat :tophat:
+# 🏁 motor-hat 🎩
 
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url] [![semantic-release][semrel-image]][semrel-url] [![Commitizen friendly][commitizen-image]][commitizen-url] [![Greenkeeper badge](https://badges.greenkeeper.io/jcane86/motor-hat.svg)](https://greenkeeper.io/)
 
@@ -66,7 +66,7 @@ motorHat.dcs[0].stop();
 ```
 ## License
 
-MIT © [J. Cane](www.github.com/jcane86)
+MIT © [J. Cane](https://www.github.com/jcane86)
 
 
 [npm-image]: https://badge.fury.io/js/motor-hat.svg
