@@ -3,26 +3,40 @@
     "allowUnknownTags": true
   },
   "plugins": ["plugins/markdown"],
+  "source"    : {
+    "include" : [
+      "lib/",
+      "examples/",
+      "package.json",
+      "./README.md"
+    ],
+    "includePattern": ".+\\.js(doc)?$",
+    "excludePattern": "(^|\\/|\\\\)_"
+  },
   "templates": {
-    "logoFile": "",
-    "cleverLinks": true,
-    "monospaceLinks": false,
     "dateFormat": "ddd MMM Do YYYY",
+    "cleverLinks": false,
+    "monospaceLinks": false,
     "outputSourceFiles": true,
-    "outputSourcePath": true,
-    "systemName": "MotorHat",
-    "footer": "(c) Pepe 2017",
-    "copyright": "MotorHat Copyright © 2017 Pepe.",
-    "navType": "vertical",
-    "theme": "paper",
-    "linenums": true,
-    "collapseSymbols": false,
-    "inverseNav": true,
-    "protocol": "html://",
-    "methodHeadingReturns": false
+    "systemName"      : "MotorHat",
+    "footer"          : "(c) jcane86 2017",
+    "copyright"       : "MotorHat Copyright © 2017 jcane86.",
+    "navType"         : "vertical",
+    "theme"           : "flatly",
+    "linenums"        : true,
+    "collapseSymbols" : false,
+    "inverseNav"      : true
   },
   "markdown": {
-    "parser": "gfm",
-    "hardwrap": true
+    "parser": "marked",
+    "hardwrap": true,
+    "githubRepoName": "motor-hat",
+    "githubRepoOwner": "jcane86"
+  },
+  "opts": {
+    "destination": "./docs/",
+    "encoding": "utf8",
+    "recurse": true,
+    "template": "./node_modules/namis"
   }
 }
